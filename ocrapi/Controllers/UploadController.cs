@@ -6,8 +6,8 @@ using System.Net.Http;
 using System.Web.Http;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Http.Cors;
 using PdfToImage;
-
 using Tesseract;
 
 
@@ -15,6 +15,8 @@ using Tesseract;
 namespace ocrapi.Controllers
 
 {
+
+    [EnableCors(origins: "*", headers: "*", methods: "*")] // tune to your needs
     [RoutePrefix("api/Upload")]
     public class UploadController : ApiController
     {
@@ -26,8 +28,10 @@ namespace ocrapi.Controllers
         /// </summary>
         /// <returns></returns>
         [AllowAnonymous]
-
+        [EnableCors(origins: "*", headers: "*", methods: "*")] 
         [Route("user/PostUserImage")]
+  
+
         public async Task<HttpResponseMessage> PostUserImage()
         {
 
@@ -48,6 +52,7 @@ namespace ocrapi.Controllers
                 foreach (string file in httpRequest.Files)
                 {
                     HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created);
+                    response.Headers.Add("Access-Control-Allow-Origin", "true");
 
                     var postedFile = httpRequest.Files[file];
                     var extension = "";
@@ -58,7 +63,10 @@ namespace ocrapi.Controllers
                         int MaxContentLength = 1024 * 1024 * 1; //Size = 1 MB  
 
                         IList<string> AllowedFileExtensions = new List<string> { ".jpg", ".gif", ".png", ".pdf" };
-                        var ext = postedFile.FileName.Substring(postedFile.FileName.LastIndexOf('.'));
+                        var imaextenzija = postedFile.FileName.LastIndexOf('.');
+                        var ext = ".png";
+                        if (imaextenzija != -1)
+                             ext = postedFile.FileName.Substring(postedFile.FileName.LastIndexOf('.'));
                         extension = ext.ToLower();
                         if (!AllowedFileExtensions.Contains(extension))
                         {
@@ -74,6 +82,7 @@ namespace ocrapi.Controllers
                             var message = string.Format("Please Upload a file upto 1 mb.");
 
                             dict.Add("error", message);
+                            
                             return Request.CreateResponse(HttpStatusCode.BadRequest, dict);
                         }
                         else
